@@ -1,0 +1,19 @@
+
+#Orlin 
+def printstart():
+    print ("Ready to loose?")
+    print ("Who should start?")
+
+    starter = input("if you want to start enter X, if I should start enter O")
+ 
+    fields = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    number = input("choose a field")
+
+    fields[int(number)-1] = starter
+
+    print(fields[0:3])
+    print(fields[3:6])
+    print(fields[6:9])
+    
+printstart()
