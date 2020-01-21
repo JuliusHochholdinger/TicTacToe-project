@@ -1,92 +1,316 @@
-#Julius
+# import stuff
+import random
 
-class Board:
-    def __init__(self):
-        self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-
-    def make_turn(self, cell, player):
-        if self.is_valid_turn(cell):
-            self.state[cell] = player.symbol
-            return True
-        return False
-
-    def is_valid_turn(self, cell):
-        if self.state[cell] == 0:
-            return True
-        else:
-            return False
-
-    def check_win(self, player):
-        s = player.symbol
-        if self.state[0] == s and self.state[1] == s and self.state[2] == s:
-            return True
-        elif self.state[3] == s and self.state[4] == s and self.state[5] == s:
-            return True
-        elif self.state[6] == s and self.state[7] == s and self.state[8] == s:
-            return True
-
-        elif self.state[0] == s and self.state[3] == s and self.state[6] == s:
-            return True
-        elif self.state[1] == s and self.state[4] == s and self.state[7] == s:
-            return True
-        elif self.state[2] == s and self.state[5] == s and self.state[8] == s:
-            return True
-
-        elif self.state[0] == s and self.state[4] == s and self.state[8] == s:
-            return True
-        elif self.state[2] == s and self.state[4] == s and self.state[6] == s:
-            return True
-
-    def is_full(self):
-        for i in self.state:
-            if i == 0:
-                return False
-        return True
-
-    def sign_to_printable(self, sign):
-        if sign == 0:
-            return " "
-        elif sign == 1:
-            return "X"
-        else:
-            return "O"
-
-    def print_board(self):
-        print(" " + self.sign_to_printable(self.state[0]) + " | " + self.sign_to_printable(self.state[1]) + " | " + self.sign_to_printable(self.state[2]) + " \n" +
-              " " + self.sign_to_printable(self.state[3]) + " | " + self.sign_to_printable(self.state[4]) + " | " + self.sign_to_printable(self.state[5]) + " \n" +
-              " " + self.sign_to_printable(self.state[6]) + " | " + self.sign_to_printable(self.state[7]) + " | " + self.sign_to_printable(self.state[8]) + " \n")
+# Initialize Variables
+board = [" ", " ", " ", " ", " ", " ", " ", " ", " "]
+board_if_full = False
+position = None
+positionKI = None
+winner = None
+try_again = None
+empty_places_in_board = None
+moves = 0
+empty_places_in_board = [None, None, None, None, None, None, None, None, None]
 
 
-class Player:
-    def __init__(self, symbol):
-        self.symbol = symbol
+def draw_board():
+    print('┌───┬───┬───┐')
+    print(f'│ {board[0]} │ {board[1]} │ {board[2]} │')
+    print('├───┼───┼───┤')
+    print(f'│ {board[3]} │ {board[4]} │ {board[5]} │')
+    print('├───┼───┼───┤')
+    print(f'│ {board[6]} │ {board[7]} │ {board[8]} │')
+    print('└───┴───┴───┘')
 
 
-if __name__ == '__main__':
-    player_a = Player(1)
-    player_b = Player(-1)
-    board = Board()
-    active_player = player_a
-    while not board.is_full():
-        board.print_board()
-        try:
-            cell = int(input("Where do you want to place your sign? [1-9]"))
-        except ValueError:
-            continue
-        cell = cell - 1
-        if cell < 0 or cell > 8:
-            print("Please enter a number between 1 and 9")
-            continue
-        if not board.make_turn(cell, active_player):
-            print("Invalid Move")
-            continue
+def check_for_win():
+    global sign
+    global winner
+    global oppositesign
+    # checking for rows
+    if sign == board[0] == board[1] == board[2]:
+        winner = sign
+    elif sign == board[3] == board[4] == board[5]:
+        winner = sign
+    elif sign == board[6] == board[7] == board[8]:
+        winner = sign
+    # checking for columns
+    elif sign == board[0] == board[3] == board[6]:
+        winner = sign
+    elif sign == board[1] == board[4] == board[7]:
+        winner = sign
+    elif sign == board[2] == board[5] == board[8]:
+        winner = sign
+    # checking diagonals
+    elif sign == board[2] == board[4] == board[6]:
+        winner = sign
+    elif sign == board[0] == board[4] == board[8]:
+        winner = sign
+    # checking for winner in ki
+    elif oppositesign == board[0] == board[1] == board[2]:
+        winner = oppositesign
+    elif oppositesign == board[3] == board[4] == board[5]:
+        winner = oppositesign
+    elif oppositesign == board[6] == board[7] == board[8]:
+        winner = oppositesign
+    # checking for columns
+    elif oppositesign == board[0] == board[3] == board[6]:
+        winner = oppositesign
+    elif oppositesign == board[1] == board[4] == board[7]:
+        winner = oppositesign
+    elif oppositesign == board[2] == board[5] == board[8]:
+        winner = oppositesign
+    # checking diagonals
+    elif oppositesign == board[2] == board[4] == board[6]:
+        winner = oppositesign
+    elif oppositesign == board[0] == board[4] == board[8]:
+        winner = oppositesign
 
-        if board.check_win(active_player):
-            print("You wonnered! GW.")
-            break
+def check_is_full():
+    global board_if_full
+    if " " not in board:
+        board_if_full = True
+    else:
+        board_if_full = False
 
-        if active_player == player_a:
-            active_player = player_b
-        else:
-            active_player = player_a
-    print("It's a tie.")
+def check_for_valid_move():
+    global position
+    global try_again
+    if board[position] != " " and position >= 0 and position <= 8:
+        try_again = True
+    else:
+        try_again = False
+
+
+def make_a_sign():
+    global position
+    board[position] = sign
+
+
+def take_input():
+    global position
+    global try_again
+    position = int(input("Where do you wan't to place a sign?: "))
+    position = position - 1
+
+
+def playgame():
+    global moves
+    moves += 1
+    take_input()
+    check_for_valid_move()
+    if try_again != True:
+        make_a_sign()
+        draw_board()
+        check_for_win()
+    else:
+        print("Thats not a valid move pleas try again!")
+        playgame()
+        moves -= 1
+
+
+def ki_plays():
+    ki_input()
+    make_a_sign_ki()
+    draw_board()
+    check_for_win()
+
+
+def ki_input():
+    # For the first round
+    # corners
+    global sign
+    global winner
+    global oppositesign
+    global positionKI
+    global empty_places_in_board
+    trypositionKi = -100
+    find_empty_position()
+    # checking for rows
+    # first row
+    if oppositesign == board[0] == board[1] and board[2] == " ":
+        positionKI = 2
+    elif oppositesign == board[1] == board[2] and board[0] == " ":
+        positionKI = 0
+    elif oppositesign == board[0] == board[2] and board[1] == " ":
+        positionKI = 1
+    # second row
+    elif oppositesign == board[3] == board[4] and board[5] == " ":
+        positionKI = 5
+    elif oppositesign == board[4] == board[5] and board[3] == " ":
+        positionKI = 3
+    elif oppositesign == board[3] == board[5] and board[4] == " ":
+        positionKI = 4
+
+    # third row
+    elif oppositesign == board[6] == board[7] and board[8] == " ":
+        positionKI = 8
+    elif oppositesign == board[7] == board[8] and board[6] == " ":
+        positionKI = 6
+    elif oppositesign == board[6] == board[8] and board[7] == " ":
+        positionKI = 7
+    # checking for columns
+    # first column
+    elif oppositesign == board[0] == board[3] and board[6] == " ":
+        positionKI = 6
+    elif oppositesign == board[3] == board[6] and board[8] == " ":
+        positionKI = 0
+    elif oppositesign == board[0] == board[6] and board[3] == " ":
+        positionKI = 3
+    # second column
+    elif oppositesign == board[1] == board[4] and board[7] == " ":
+        positionKI = 7
+    elif oppositesign == board[1] == board[7] and board[4] == " ":
+        positionKI = 4
+    elif oppositesign == board[7] == board[4] and board[1] == " ":
+        positionKI = 1
+    # third column
+    elif oppositesign == board[2] == board[5] and board[8] == " ":
+        positionKI = 8
+    elif oppositesign == board[5] == board[8] and board[2] == " ":
+        positionKI = 2
+    elif oppositesign == board[2] == board[8] and board[5] == " ":
+        positionKI = 5
+    # checking diagonals
+    # first diagonal
+    elif oppositesign == board[2] == board[4] and board[6] == " ":
+        positionKI = 6
+    elif oppositesign == board[6] == board[4] and board[2] == " ":
+        positionKI = 2
+    elif oppositesign == board[2] == board[6] and board[4] == " ":
+        positionKI = 4
+    # second diagonal
+    elif oppositesign == board[0] == board[4] and board[8] == " ":
+        positionKI = 8
+    elif oppositesign == board[8] == board[4] and board[0] == " ":
+        positionKI = 0
+    elif oppositesign == board[0] == board[8] and board[4] == " ":
+        positionKI = 4
+# checking for player possible wins:
+
+    # checking for rows
+    # first row
+    elif sign == board[0] == board[1] and board[2] == " ":
+        positionKI = 2
+    elif sign == board[1] == board[2] and board[0] == " ":
+        positionKI = 0
+    elif sign == board[0] == board[2] and board[1] == " ":
+        positionKI = 1
+    # second row
+    elif sign == board[3] == board[4] and board[5] == " ":
+        positionKI = 5
+    elif sign == board[4] == board[5] and board[3] == " ":
+        positionKI = 3
+    elif sign == board[3] == board[5] and board[4] == " ":
+        positionKI = 4
+
+    # third row
+    elif sign == board[6] == board[7] and board[8] == " ":
+        positionKI = 8
+    elif sign == board[7] == board[8] and board[6] == " ":
+        positionKI = 6
+    elif sign == board[6] == board[8] and board[7] == " ":
+        positionKI = 7
+    # checking for columns
+    # first column
+    elif sign == board[0] == board[3] and board[6] == " ":
+        positionKI = 6
+    elif sign == board[3] == board[6] and board[8] == " ":
+        positionKI = 0
+    elif sign == board[0] == board[6] and board[3] == " ":
+        positionKI = 3
+    # second column
+    elif sign == board[1] == board[4] and board[7] == " ":
+        positionKI = 7
+    elif sign == board[1] == board[7] and board[4] == " ":
+        positionKI = 4
+    elif sign == board[7] == board[4] and board[1] == " ":
+        positionKI = 1
+    # third column
+    elif sign == board[2] == board[5] and board[8] == " ":
+        positionKI = 8
+    elif sign == board[5] == board[8] and board[2] == " ":
+        positionKI = 2
+    elif sign == board[2] == board[8] and board[5] == " ":
+        positionKI = 5
+    # checking diagonals
+    # first diagonal
+    elif sign == board[2] == board[4] and board[6] == " ":
+        positionKI = 6
+    elif sign == board[6] == board[4] and board[2] == " ":
+        positionKI = 2
+    elif sign == board[2] == board[6] and board[4] == " ":
+        positionKI = 4
+    # second diagonal
+    elif sign == board[0] == board[4] and board[8] == " ":
+        positionKI = 8
+    elif sign == board[8] == board[4] and board[0] == " ":
+        positionKI = 0
+    elif sign == board[0] == board[8] and board[4] == " ":
+        positionKI = 4
+    else:
+        while trypositionKi not in empty_places_in_board:
+            trypositionKi = random.randint(0,8)
+            if trypositionKi in empty_places_in_board:
+                break
+        positionKI = trypositionKi
+
+def make_a_sign_ki():
+    global positionKI
+    global oppositesign
+    board[positionKI] = oppositesign
+
+def find_empty_position():
+    global empty_places_in_board
+    counter = -1
+    for i in range(8):
+        if board[i] == " ":
+            counter += 1
+            empty_places_in_board[counter] = i
+
+
+# Playing the game
+print("")
+print("")
+print("$$$$$$$$\ $$\                 $$$$$$$$\                        $$$$$$$$\                 ")
+print("\__$$  __|\__|                \__$$  __|                       \__$$  __|                 ")
+print("   $$ |   $$\  $$$$$$$\          $$ | $$$$$$\   $$$$$$$\          $$ | $$$$$$\   $$$$$$\  ")
+print("   $$ |   $$ |$$  _____|         $$ | \____$$\ $$  _____|         $$ |$$  __$$\ $$  __$$\ ")
+print("   $$ |   $$ |$$ /               $$ | $$$$$$$ |$$ /               $$ |$$ /  $$ |$$$$$$$$ |")
+print("   $$ |   $$ |$$ |               $$ |$$  __$$ |$$ |               $$ |$$ |  $$ |$$   ____|")
+print("   $$ |   $$ |\$$$$$$$\          $$ |\$$$$$$$ |\$$$$$$$\          $$ |\$$$$$$  |\$$$$$$$\ ")
+print("  \__|   \__| \_______|         \__| \_______| \_______|         \__| \______/  \_______|")
+print("")
+name = input("Welcome to Tic Tac Toe whats your name: ")
+sign = input("What sign do you wan't to play(X, O): ")
+if sign == "X" or sign == "x":
+    oppositesign = "O"
+else:
+    oppositesign = "X"
+
+draw_board()
+
+while board_if_full is False:
+    if winner == sign or winner == oppositesign:
+        break
+    check_is_full()
+    playgame()
+    if winner == sign or winner == oppositesign:
+        break
+    check_is_full()
+    print("")
+    print("Ki plays... ")
+    print("")
+    ki_plays()
+    if winner == sign or winner == oppositesign:
+        break
+    check_is_full()
+
+# Finish Ki
+if winner == sign:
+    print("The Winner is: " + name + " !!!")
+elif winner == oppositesign:
+    print("ki won!!!")
+
+if board_if_full == True and winner != oppositesign and winner != sign:
+    print("It's a tie!")
